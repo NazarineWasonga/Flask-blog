@@ -36,3 +36,13 @@ Bloggers would like to:
 | To edit a blog  | **Through Admin dashboard** | Redirected to the  blog form collection form and editing happens|
 | To delete a blog/comments  | **Through Admin dashboard and on displays** | Bad comments and posts can be deleted|
 | To subscribe  | **On button click** | Users can subscribe on click|
+
+
+
+
+## SetUp / Installation Requirements
+### Prerequisites
+* python3.6
+* pip
+* virtualenv
+* Requirements.txt
