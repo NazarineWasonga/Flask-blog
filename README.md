@@ -58,6 +58,7 @@ Bloggers would like to:
         $ python3.6 -m venv --without-pip virtual
         $ source virtual/bin/env
         $ curl https://bootstrap.pypa.io/get-pip.py | python
+
 * Installing Flask and other Modules
 
         $ see Requirements.txt
@@ -65,4 +66,9 @@ Bloggers would like to:
 * To run the application, in your terminal:
 
         $ chmod +x start.sh
-        $ ./start.sh    
+        $ ./start.sh
+
+
+
+
+
