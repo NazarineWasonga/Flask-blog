@@ -48,5 +48,21 @@ Bloggers would like to:
 
 ### Cloning
 * In your terminal:
+
         $ git clone https://github.com/NazarineWasonga/peech/
         $ cd blog
+
+## Running the Application
+* Creating the virtual environment
+
+        $ python3.6 -m venv --without-pip virtual
+        $ source virtual/bin/env
+        $ curl https://bootstrap.pypa.io/get-pip.py | python
+* Installing Flask and other Modules
+
+        $ see Requirements.txt
+
+* To run the application, in your terminal:
+
+        $ chmod +x start.sh
+        $ ./start.sh    
