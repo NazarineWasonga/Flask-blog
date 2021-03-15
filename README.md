@@ -39,10 +39,14 @@ Bloggers would like to:
 
 
 
-
 ## SetUp / Installation Requirements
 ### Prerequisites
 * python3.6
 * pip
 * virtualenv
 * Requirements.txt
+
+### Cloning
+* In your terminal:
+        $ git clone https://github.com/NazarineWasonga/peech/
+        $ cd blog
