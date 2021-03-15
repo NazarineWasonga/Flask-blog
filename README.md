@@ -15,3 +15,12 @@ View the blog posts submitted.
 * View the most recent posts
 * Alerted when a new post is made by joining a subscription.
 * comment on the different pitches and leave feedback.
+
+## Blogger Abilities
+These are the behaviours/features that the application implements for use by the writter/Blogger
+
+Bloggers would like to:
+* Sign in to the blog
+* Create a blog from the application
+* Delete comments that I find insulting or degrading
+* Update or delete blogs I have created.
