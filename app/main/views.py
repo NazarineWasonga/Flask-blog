@@ -1,60 +1,77 @@
-from flask import render_template,abort,request,redirect,url_for,flash
-from . import blog
-from flask_login import login_required,current_user
-from ..models import User,Article,Comment
-from .forms import UpdateProfile,CommentForm
+
+from . import main
+from flask import render_template,redirect,url_for,request,abort
+from flask_login import login_required,current_user,login_user,logout_user
+from .forms import ArticleUploadForm,CommentsForm,UpdateProfile
 from .. import db,photos
-from ..requests import get_quotes
-# Views
-@blog.route('/')
-@login_required
+from ..models import Article,Comment,User,  Quotes
+from ..requests import getQuotes
+
+@main.route('/')
 def index():
+    articles = Article.get_article()
+    try:
+        quotes = getQuotes()
+    except Exception as e:
+        quotes = "quotes unavailable"
+    title='Welcome to the article'
+    return render_template('index.html',articles=articles,quotes = quotes)
 
-    '''
-    View root page function that returns the index page and its data
-    '''
-    quotes=get_quotes()
-    articles=Article.get_all_articles()
-    popular=Article.query.order_by(Article.article_upvotes.desc()).limit(3).all()
-    return render_template('index.html',quotes=quotes,articles=articles,popular=popular)
+@main.route('/addarticle',methods = ['GET','POST'])
+@login_required
+def add_article():
+    form = ArticleUploadForm()
+    if form.validate_on_submit():
+        article = form.article.data
+        category = form.category.data
+        new_article = Article(article = article,category = category,user = current_user)
+        new_article.save_article()
+        return redirect(url_for('.index'))
+    title = 'Add a article'
+    return render_template('addarticle.html',title = title,articleform = form)
 
 
-@blog.route('/profile/<username>')
+@main.route('/articlediscussion/<int:article_id>/comment',methods=['POST','GET'])
+@login_required
+def comment(article_id):
+    current_article = Article.query.filter_by(id = article_id).first()
+    if request.method == "POST":
+        comment = request.form.get("comment")
+        new_comment = Comment(comment = comment,user = current_user,article = current_article)
+        db.session.add(new_comment)
+        db.session.commit()
+    article = Article.query.get_or_404(article_id)
+    comments = Comment.get_comments(article_id)
+
+    title = 'Article Discussion'
+    return render_template('articlediscussion.html',title = title,article = article,comments=comments)
+
+@main.route('/profile/<username>')
 @login_required
 def profile(username):
-
-    '''
-    View profile page function that returns the profile details of the current user logged in
-    '''
     user = User.query.filter_by(username = username).first()
-    
+    userid = user.id
+    my_articles = Article.query.filter_by(user_id = userid).all()
+
     if user is None:
         abort(404)
- 
-    return render_template("profile/profile.html", user = user)     
-    
 
-@blog.route('/profile/<username>/update',methods = ['GET','POST'])
+    return render_template('profile/profile.html',user = user,my_articles = my_articles)
+
+@main.route('/user/<username>/update', methods = ['GET','POST'])
 @login_required
-def update_profile(username):
+def profle_update(username):
     user = User.query.filter_by(username = username).first()
-    if user is None:
-        abort(404)
-
     form = UpdateProfile()
-
     if form.validate_on_submit():
         user.bio = form.bio.data
         db.session.add(user)
         db.session.commit()
+        return redirect(url_for('.profile',username = user.username))
 
-        flash('User bio updated')
+    return render_template('profile/update.html',form= form)
 
-        return redirect(url_for('blog.profile',username=user.username))
-
-    return render_template('profile/update.html',user=user,form =form)    
-
-@blog.route('/profile/<username>/update/pic',methods= ['POST'])
+@main.route('/user/<username>/update/pic',methods= ['POST'])
 @login_required
 def update_pic(username):
     user = User.query.filter_by(username = username).first()
@@ -63,120 +80,32 @@ def update_pic(username):
         path = f'photos/{filename}'
         user.profile_pic_path = path
         db.session.commit()
+    return redirect(url_for('main.profile',username=username))
 
-        flash('User pic updated')
-        
-    return redirect(url_for('blog.update_profile',username=username))  
-
-
-
-@blog.route('/article/new',methods= ['GET','POST'])
+@main.route('/articlediscussion/<int:article_id>/update',methods=['POST','GET'])
 @login_required
-def new_article():
-    if request.method=='POST':
-        article_title=request.form['title']
-        article_body=request.form['body']
-        article_tag=request.form['tag']
-        filename = photos.save(request.files['photo'])
-        article_cover_path=f'photos/{filename}'
-        
-        new_article=Article(article_title=article_title,article_body=article_body,article_tag=article_tag,article_cover_path=article_cover_path,user=current_user)
-        new_article.save_article()
-
-        flash('Article added')
-        return redirect(url_for('blog.index'))
-
-    return render_template('new_article.html')  
-
-
-@blog.route('/articles/tag/<tag>')
-@login_required
-def article_by_tag(tag):
-
-    '''
-    View root page function that returns pitch category page with pitches from category selected
-    '''
-    articles=Article.query.filter_by(article_tag=tag).order_by(Article.posted.desc()).all()
-    
-    return render_template('article_by_tag.html',articles=articles,tag=tag)    
-
-
-@blog.route('/article_details/<article_id>', methods = ['GET','POST'])
-@login_required
-def article_details(article_id):
-
-    '''
-    View article details function that returns article_details and comment form
-    '''
-
-    form = CommentForm()
-    article=Article.query.get(article_id)
-    comments=Comment.query.filter_by(article_id=article_id).order_by(Comment.posted.desc()).all()
-    
+def update(article_id):
+    current_article = Article.query.filter_by(id = article_id).first()
+    if current_article.user != current_user:
+        abort(403)
+    form = ArticleUploadForm()
     if form.validate_on_submit():
-        comment = form.comment.data
-        
-        # Updated comment instance
-        new_comment = Comment(comment=comment,user=current_user,article=article)
-
-        # save review method
-        new_comment.save_comment()
-        article.article_comments_count = article.article_comments_count+1
-
-        db.session.add(article)
+        current_article.article = form.article.data
+        current_article.category = form.category.data
         db.session.commit()
-        flash('Comment posted')
-        return redirect(url_for('blog.article_details',article_id=article_id))
+        return redirect('.comment',article_id = article_id)
+    elif request.method == 'GET':
+        form.category.data = current_article.category
+        form.article.data = current_article.article
+    return render_template('addarticle.html',title = 'update article',articleform = form)
 
-    return render_template('article_details.html',comment_form=form,article=article,comments=comments)
 
-@blog.route('/article_upvote/<article_id>')
+@main.route('/articlediscussion/<int:article_id>/delete',methods=['POST'])
 @login_required
-def article_upvote(article_id):
-    '''
-    View function to add do upvote on article like btn click
-    '''
-    article=Article.query.get(article_id)
-    article.article_upvotes=article.article_upvotes+1
-    db.session.add(article)
-    db.session.commit() 
-    flash('You liked this article') 
-    return redirect(url_for('blog.article_details',article_id=article_id)) 
-
-
-@blog.route('/article_downvote/<article_id>')
-@login_required
-def article_downvote(article_id):
-    '''
-    View function to add downvote on article dislike btn click
-    '''
-    article=Article.query.get(article_id)
-    article.article_downvotes=article.article_downvotes+1
-    db.session.add(article)
-    db.session.commit()  
-    flash('You disliked this article')
-    return redirect(url_for('blog.article_details',article_id=article_id))         
-
-
-
-@blog.route('/comment/delete/<comment_id>/<article_id>')
-@login_required
-def delete_comment(comment_id,article_id):
-    comment = Comment.query.get(comment_id)
-    db.session.delete(comment)
-    article=Article.query.get(article_id)
-    article.article_comments_count = article.article_comments_count-1
-    db.session.add(article)
+def delete(article_id):
+    current_article = Article.query.filter_by(id = article_id).first()
+    if current_article.user != current_user:
+        abort(403)
+    db.session.delete(current_article)
     db.session.commit()
-    flash('You deleted a comment')
-    return redirect(url_for('blog.article_details',article_id=article_id))
-
-
-@blog.route('/article/delete/<article_id>')
-@login_required
-def delete_article(article_id):
-  article = Article.query.get(article_id)
-  db.session.delete(article)
-  db.session.commit()
-  flash('You deleted an article')
-  return redirect(url_for('blog.index'))    
+    return redirect(url_for('.index'))

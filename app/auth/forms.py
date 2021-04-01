@@ -1,25 +1,25 @@
+
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField,BooleanField
-from wtforms.validators import Required,Email,EqualTo,ValidationError
+from wtforms import StringField,SubmitField,TextAreaField,BooleanField,PasswordField
+from wtforms.validators import EqualTo,Required,ValidationError,Email
 from ..models import User
 
+class LoginForm(FlaskForm):
+    email = StringField('Please enter your Email',validators=[Required()])
+    password = PasswordField('Please enter your Password',validators=[Required()])
+    remember = BooleanField('remember me')
+    submit = SubmitField('Log In')
 class RegistrationForm(FlaskForm):
-    email = StringField('Your Email Address',validators=[Required(),Email()])
-    username = StringField('Enter your username',validators = [Required()])
-    password = PasswordField('Password',validators = [Required(),
-    EqualTo('password_confirm',message = 'Passwords must match')])
-    password_confirm = PasswordField('Confirm Passwords',validators = [Required()])
+    username = StringField('Enter your Username',validators=[Required()])
+    email = StringField('Please Enter Your Email',validators=[Email(),Required()])
+    password = PasswordField('Please Enter Your Password',validators=[Required(),EqualTo('confirm_password',message='Passwords do not match')])
+    confirm_password = PasswordField('Please Retype Your Password',validators=[Required()])
     submit = SubmitField('Sign Up')
+
     def validate_email(self,data_field):
-        if User.query.filter_by(email =data_field.data).first():
-                raise ValidationError('There is an account with that email')
+        if User.query.filter_by(email = data_field.data).first():
+            raise ValidationError('There is a user already registered with that email')
 
     def validate_username(self,data_field):
         if User.query.filter_by(username = data_field.data).first():
-            raise ValidationError('That username is taken')
-
-class LoginForm(FlaskForm):
-    email = StringField('Your Email Address',validators=[Required(),Email()])
-    password = PasswordField('Password',validators =[Required()])
-    remember = BooleanField('Remember me')
-    submit = SubmitField('Sign In')
+            raise ValidationError('That username is taken please pick another')

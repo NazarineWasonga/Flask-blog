@@ -1,74 +1,85 @@
-from . import db, login_manager
-from datetime import datetime
+from . import db,login_manager
+from werkzeug.security import generate_password_hash,check_password_hash
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-from hashlib import md5
-from time import time
-from app import create_app
+
 
 @login_manager.user_loader
-def load_user(id):
-        return User.query.get(int(id))
-        
-class User(UserMixin, db.Model):
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+class User(UserMixin,db.Model):
     '''
-    UserMixin class that includes generic implementations
-    that are appropriate for most user model classes
+    This class will contain database schema for users
     '''
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120), index=True, unique=True)
-    email = db.Column(db.String(120), index=True, unique=True)
-    password_hash = db.Column(db.String(130))
+    id = db.Column(db.Integer,primary_key=True)
+    username = db.Column(db.String,unique = True,nullable = False)
+    email = db.Column(db.String,unique = True,nullable = False)
+    bio = db.Column(db.String(255))
     profile_pic_path = db.Column(db.String())
-
-    post = db.relationship('Post', backref='user', lazy="dynamic")
-    comments = db.relationship('Comments', backref='user', lazy="dynamic")
-
-    pass_secure  = db.Column(db.String(255))
-
+    article = db.relationship('Article',backref='user',lazy = 'dynamic')
+    comments = db.relationship('Comment',backref='user',lazy='dynamic')
+    password_hash = db.Column(db.String,nullable=False)
     @property
     def password(self):
+        '''
+        Raises error when someone trys to read the password
+        '''
         raise AttributeError('You cannot read the password attribute')
 
-    def set_password(self, password):
+    @password.setter
+    def password(self,password):
+        '''
+        Generates password hash
+        '''
         self.password_hash = generate_password_hash(password)
 
-
     def verify_password(self,password):
-        return check_password_hash(self.password_hash,password)
-   
-    def __repr__(self):
-        return '{}'.format(self.username)
-    
-class Post(db.Model):
+        '''
+        confirms password equal to the password hash during login
+        '''
+        check_password_hash(self.password_hash,password)
+
+class Article(db.Model):
     '''
-    Post class represent the posts posted by 
-    users.
-    ''' 
+    This class will contain the database schema for articles table
+    '''
+    __tablename__ = 'articles'
 
-    __tablename__ = 'posts'
-    id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    id = db.Column(db.Integer,primary_key = True)
+    article = db.Column(db.String)
+    category = db.Column(db.String)
+    user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
+    comments = db.relationship('Comment',backref='article',lazy='dynamic')
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
-    comments = db.relationship('Comments', backref='user', lazy="dynamic")
+    def save_article(self):
+        db.session.add(self)
+        db.session.commit()
 
     @classmethod
-    def retrieve_posts(cls, id):
-        posts = Post.filter_by(id=id).all()
-        return posts
-
-
-    def __repr__(self):
-        return '{}'.format(self.body)
-
-
-class Comments(db.Model):
+    def get_article(cls):
+        articles = Article.query.all()
+        return articles
+class Comment(db.Model):
+    '''
+    This class will contain the schema for comments
+    '''
     __tablename__ = 'comments'
-    id = db.Column(db.Integer, primary_key=True)
-    details = db.Column(db.String(255))
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    id = db.Column(db.Integer,primary_key = True)
+    comment = db.Column(db.String(255))
+    article_id = db.Column(db.Integer,db.ForeignKey('articles.id'))
+    user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
+
+    @classmethod
+    def get_comments(cls,article_id):
+        comments = Comment.query.filter_by(article_id=article_id).all()
+        return comments
+
+class Quotes:
+    def __init__(self,author,quote):
+        '''
+        Method to instanciate the quotes class
+        '''
+        self.author = author
+        self.quote = quote

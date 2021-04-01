@@ -1,54 +1,21 @@
-{% extends 'base.html'%}
-{% import 'bootstrap/wtf.html' as wtf%}
-
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
 {% block content %}
 
-<head>
-  <meta charset="utf-8">
-</head>
-<div class="container-fluid">
-  <div id="navbar" class="container-fluid"
-    style=" background-color: rgb(197, 115, 238);font-family: 'Maven Pro', sans-serif; font-size: 19px;">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/"> <strong>BLOG</strong>spot</a>
-      <ul class="d-flex flex-row nav navbar-nav navbar-right">
-        <li><a href="/">Home</a></li>
-        {% if current_user.is_authenticated %}
-        <li style="color:white;padding:15px;">{{current_user.username}}</li>
-        <li><a href="{{url_for('auth.logout')}}">Sign out</a></li>
-        {% else %}
-        <li><a href="{{url_for('auth.login')}}">Sign in <img src="/static/photos/logout.png" alt="" height="20px;"></a>
-        </li>
-        {%endif%}
-      </ul>
-    </div>
-  </div>
-  <div class="well">
-    <div class="row">
-      <div class="col-md-2"> </div>
-      <div class="col-md-8">
-        <!--Flash message -->
-        {% for message in get_flashed_messages() %}
-        <div class="alert alert-danger">
-          <button type="button" class="close" data-dismiss="alert">&times;</button>
-          {{ message }}
-        </div>
-        {% endfor %}
-        <!-- Login form -->
-        {{wtf.quick_form(login_form)}}
-        <p> Don't have an account? <button class="btn btn-info"><a href="{{url_for('auth.register')}}">Sign up
-              Here</a></button></p>
+<div class="container">
+  <div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-6">
+      <h1>Login</h1>
+      {% for message in get_flashed_messages() %}
+      <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{message}}
       </div>
-      <div clas="col-md-2"> </div>
+      {% endfor %}
+      {{wtf.quick_form(login_form)}}
+      <p> Don't have an account yet? <a href="{{url_for('auth.register')}}">Sign up here</a></p>
     </div>
   </div>
-  <style>
-    a {
-      color: aliceblue;
-      text-decoration: none;
-    }
-  </style>
-
 </div>
-
-{% endblock%}
+{% endblock %}

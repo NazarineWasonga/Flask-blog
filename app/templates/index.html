@@ -1,125 +1,41 @@
-{% extends 'base.html'%}
-{% import "bootstrap/wtf.html" as wtf %}
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-  <meta charset="utf-8">
-  {% if title %}
-  <title> {{ title }}</title>
-  {% else %}
-  <title> Welcome </title>
-  {% endif %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{url_for('static',filename='stylesheets/styles.css')}}">
+<link href="https://fonts.googleapis.com/css?family=Berkshire+Swash&display=swap" rel="stylesheet">
+{% endblock %}
 
-</head>
-
-<body>
-  {% block content %}
-
-  <div id="navbar" class="container-fluid"
-    style=" background-color: rgb(197, 115, 238);font-family: 'Maven Pro', sans-serif; font-size: 19px;height: 400px;;">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/"> <strong>BLOG</strong>spot</a>
-      <ul class=" d-flex flex-row nav navbar-nav navbar-right" style="float: left;">
-        <li><a href="/">Home</a></li>
-        {% if current_user.is_authenticated %}
-        <li style="color:white;padding:15px;">{{current_user.username}}</li>
-        <li><a href="{{url_for('auth.logout')}}">Sign out</a></li>
-        {% else %}
-        <li><a href="{{url_for('auth.login')}}">Sign in <img src="/static/photos/logout.png" alt="" height="20px;"></a>
-        </li>
-        {%endif%}
-      </ul>
-
-    </div>
-    <div class="container-fluid">
-
-      <h1><img src="/static/photos/logo.png" alt="" style="height: 150px;" class="brightness"> <br> The Best Blog
-        website Ever</h1>
-      <link rel="img" href="{{url_for('static',filename='images/coverphoto.jpg')}}">
+{% block content %}
+<div class="landingspot">
+  <div class="container-fluid">
+    <div class="textmiddle">
+      <h1 style="font-family: 'Berkshire Swash', cursive;">Welcome To FlaskBlog</h1>
+      <p><i>{{ quotes.quote }}</i></p>
+      <p>{{ quotes.author }}</p>
+      <a href="{{url_for('main.add_article')}}" class="btn btn-primary">Write An Article</a>
+      <a href="{{url_for('auth.register')}}" class="btn btn-primary">Sign Up</a>
     </div>
   </div>
-
-  <style>
-    #navbar a {
-      color: aliceblue;
-      text-shadow: 50px;
-
-    }
-
-    #navbar a:hover {
-      color: brown;
-    }
-
-    .container p {
-      font-size: 14px;
-    }
-
-    h1 {
-      font-size: 70px;
-      text-align: center;
-      color: whitesmoke;
-      font-family: 'Satisfy', cursive;
-    }
-
-    h1:hover {
-      color: rgb(101, 216, 182);
-    }
-
-    h2 {
-      font-family: 'Nunito', sans-serif;
-    }
-
-    .brightness {
-      filter: brightness(10);
-    }
-
-    img {
-      margin-top: 5px;
-    }
-
-    img:hover {
-      -o-transform: translate(-5px, -5px);
-      -webkit-transform: translate(-5px, -5px);
-      transform: translate(-5px, -5px);
-    }
-  </style>
-
-  <div id="section" class="container-fluid" style="margin-top: 0em;">
-
-  </div>
-  <div class="container">
-
-    <div class="well" style="padding-top: 5px; margin-top:10px; ">
-      <h4><strong>Create A blog</strong></h4><span></span>
-      {{ wtf.quick_form(form)}}
-
-    </div>
-
-    <div class="col-m">
-      <div class="card">
-        <div class="card-header">
-          <h2>Music</h2>
-
-        </div>
-        <div class="card-body">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-            labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-            laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-            voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-            non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-
-        </div>
-        <div class="card-footer">
-          <h2>Author:</h2>
-
+</div>
+<div class="container-fluid">
+  <div class="row">
+    <div>
+      <h1>Article Headlines</h1>
+      {% for article in articles %}
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">{{ article.category }}</div>
+          <div class="panel-body">
+            <p>{{ article.article | truncate(200) }}</p>
+            <p><strong>{{ article.user.username }}</strong></p>
+            <a href="{{url_for('main.comment',article_id=article.id)}}" class="btn btn-primary">Read-full
+              Article</a>
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
   </div>
-
-  {% endblock%}
-
-</body>
-
-</html>
+</div>
+{% endblock %}
