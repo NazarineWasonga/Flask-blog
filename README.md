@@ -38,7 +38,7 @@ Bloggers would like to:
 | To subscribe  | **On button click** | Users can subscribe on click|
 
 ## Application link
-click [here]()
+click [here](https://flask-blog254.herokuapp.com/)
 
 
 ## SetUp / Installation Requirements
