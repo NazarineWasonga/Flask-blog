@@ -37,6 +37,8 @@ Bloggers would like to:
 | To delete a blog/comments  | **Through Admin dashboard and on displays** | Bad comments and posts can be deleted|
 | To subscribe  | **On button click** | Users can subscribe on click|
 
+## Application link
+click [here]()
 
 
 ## SetUp / Installation Requirements
